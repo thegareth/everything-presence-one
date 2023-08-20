@@ -1,0 +1,28 @@
+{
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#55f1c7",
+        "activityBar.background": "#55f1c7",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#ce6cf3",
+        "activityBarBadge.foreground": "#15202b",
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#55f1c7",
+        "statusBar.background": "#26edb7",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#11cf9b",
+        "statusBarItem.remoteBackground": "#26edb7",
+        "statusBarItem.remoteForeground": "#15202b",
+        "titleBar.activeBackground": "#26edb7",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#26edb799",
+        "titleBar.inactiveForeground": "#15202b99"
+    },
+    "peacock.color": "#26edb7",
+    "esphome.dashboardUri": "http://ha.int.garethklose.com:6052",
+    "files.associations": {
+        "*.js": "javascriptreact",
+        "string": "cpp",
+        "iosfwd": "cpp"
+    }
+}
