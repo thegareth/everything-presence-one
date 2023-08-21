@@ -103,7 +103,7 @@ public:
 
   void update() override
   {
-    ESP_LOGD("custom", "Update loop called");
+    // ESP_LOGD("custom", "Update loop called");
 
     typedef std::tuple<int, float, float> pointentry;
 
@@ -153,7 +153,7 @@ public:
       }
     }
 
-    ESP_LOGD("custom", "Received %d lines, out of %d", sensorlines.size(), line_count);
+    // ESP_LOGD("custom", "Selected %d lines, out of %d received", sensorlines.size(), line_count);
     // if (sensorlines.size() > 0)
     // {
     //   ESP_LOGD("custom", "First line: %d, %f, %f - Last: %d, %f, %f", std::get<0>(sensorlines[0]), std::get<1>(sensorlines[0]), std::get<2>(sensorlines[0]),

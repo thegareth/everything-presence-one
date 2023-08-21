@@ -580,6 +580,9 @@ button:
       - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
       - delay: 1s
       - switch.turn_on: mmwave_sensor
+      - lambda: |-
+          ((Sen0395Distance*)id(my_custom_id))->update_config();
+
   - platform: template
     name: Get output
     icon: mdi:cog-counterclockwise
