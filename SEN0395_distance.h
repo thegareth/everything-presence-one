@@ -14,7 +14,7 @@ public:
   void update_config()
   {
     ESP_LOGD("custom", "Config update called");
-    this->b_write_target_details = id(target_output).state / 100.0;
+    this->b_write_target_details = id(target_output).state;
     this->f_range_start[1] = id(mmwave_zone_1_start).state / 100.0;
     this->f_range_end[1] = id(mmwave_zone_1_end).state / 100.0;
     this->f_range_start[2] = id(mmwave_zone_2_start).state / 100.0;
