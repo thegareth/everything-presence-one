@@ -1,10 +1,11 @@
 #include "esphome.h"
 #include <string>
+#include <tuple>
 
 class Sen0395Distance : public PollingComponent, public UARTDevice
 {
 public:
-  Sen0395Distance(UARTComponent *parent) : UARTDevice(parent), PollingComponent(1000) {}
+  Sen0395Distance(UARTComponent *parent) : UARTDevice(parent), PollingComponent(1500) {}
 
   bool b_write_target_details = false;
   float f_range_start[5] = {0, 0, 0, 0, 0};
@@ -98,31 +99,32 @@ public:
 
   void setup() override
   {
-    write_str("setUartOutput 1 0");
-    delay(1000);
-    write_str("setUartOutput 2 1 0 1600");
-    delay(1000);
-    write_str("sensorStart");
   }
 
   void update() override
   {
     ESP_LOGD("custom", "Update loop called");
-    float t_snr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    float t_distance[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    bool t_active[10] = {false, false, false, false, false, false, false, false, false, false};
-    bool r_range_occupied[5] = {false, false, false, false, false};
 
+    typedef std::tuple<int, float, float> pointentry;
+
+    std::vector<pointentry> sensorlines;
+
+    std::string line;
+
+    int current_result_count;
     const int max_line_length = 40;
     static char buffer[max_line_length];
-
+    int line_count = 0;
     while (available())
     {
-      if (readline(read(), buffer, max_line_length) >= 3)
+      if (available() && readline(read(), buffer, max_line_length) > 0)
       {
-        std::string line = buffer;
-        if (line.substr(0, 6) == "$JYRPO")
-        {
+        line_count++;
+        line = buffer;
+        if (line.substr(0, 6) == "$JYRPO" && line.back() == '*')
+        { // we have a sensor reading
+          // store the number of results
+
           std::string vline = line.substr(6);
           std::vector<std::string> v;
           for (int i = 0; i < vline.length(); i++)
@@ -136,26 +138,37 @@ public:
               v.back() += vline[i];
             }
           }
-          int target_count = parse_number<int>(v[0]).value();
+          int total_targets = parse_number<int>(v[0]).value();
           int target_index = parse_number<int>(v[1]).value();
           float target_distance = parse_number<float>(v[2]).value();
           float target_snr = parse_number<float>(v[4]).value();
 
-          ESP_LOGD("custom", "Target %d/%d Distance: %f, SNR: %f", target_index, target_count, target_distance, target_snr);
-          t_snr[target_index] = target_snr;
-          t_distance[target_index] = target_distance;
-          t_active[target_index] = true;
+          if (target_index == 1)
+          {
+            ESP_LOGD("custom", "we hit a sensor clear point");
+            sensorlines.clear();
+          }
+          sensorlines.push_back(std::make_tuple(target_index, target_distance, target_snr));
         }
       }
     }
+
+    ESP_LOGD("custom", "Received %d lines, out of %d", sensorlines.size(), line_count);
+    // if (sensorlines.size() > 0)
+    // {
+    //   ESP_LOGD("custom", "First line: %d, %f, %f - Last: %d, %f, %f", std::get<0>(sensorlines[0]), std::get<1>(sensorlines[0]), std::get<2>(sensorlines[0]),
+    //            std::get<0>(sensorlines.back()), std::get<1>(sensorlines.back()), std::get<2>(sensorlines.back()));
+    // }
+
+    bool r_range_occupied[5] = {false, false, false, false, false};
 
     for (int range = 1; range < 4; range++)
     {
       if (this->f_range_start[range] >= 0 && this->f_range_end[range] > 0)
       {
-        for (int target = 1; target < 10; target++)
+        for (int target = 0; target < sensorlines.size(); target++)
         {
-          if (t_active[target] && t_distance[target] >= this->f_range_start[range] && t_distance[target] <= this->f_range_end[range])
+          if (this->f_range_start[range] <= std::get<1>(sensorlines[target]) && std::get<1>(sensorlines[target]) <= this->f_range_end[range])
           {
             r_range_occupied[range] = true;
           }
@@ -167,14 +180,5 @@ public:
     id(r2_occupied).publish_state(r_range_occupied[2]);
     id(r3_occupied).publish_state(r_range_occupied[3]);
     id(r4_occupied).publish_state(r_range_occupied[4]);
-
-    // All the data is set
-    setTargetValue(1, t_active[1], t_distance[1], t_snr[1]);
-    setTargetValue(2, t_active[2], t_distance[2], t_snr[2]);
-    setTargetValue(3, t_active[3], t_distance[3], t_snr[3]);
-    setTargetValue(4, t_active[4], t_distance[4], t_snr[4]);
-
-    this->write_str("getOutput");
-
   }
 };
