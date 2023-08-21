@@ -10,7 +10,7 @@ substitutions:
   pir_delay_off: "10s"
   occupancy_delay_off: "15s"
   hidden_ssid: "false"
-  factory_reset_disabled: "true"
+  factory_reset_disabled: "false"
   uart_target_output_disabled: "false"
   uart_presence_output_disabled: "true"
 
@@ -107,12 +107,12 @@ sensor:
   - platform: template
     name: Target 1 Distance # Don't change
     id: target_1_distance
-    accuracy_decimals: 2
-    disabled_by_default: false
+    accuracy_decimals: 1
+    disabled_by_default: True
   - platform: template
     name: Target 2 Distance # Don't change
     id: target_2_distance
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     disabled_by_default: True
   - platform: template
     name: Target 3 Distance # Don't change
@@ -122,30 +122,28 @@ sensor:
   - platform: template
     name: Target 4 Distance # Don't change
     id: target_4_distance
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     disabled_by_default: True
   - platform: template
     name: "Target 1 SNR" # Don't change
     id: target_1_snr
+    accuracy_decimals: 1
     disabled_by_default: True
   - platform: template
     name: "Target 2 SNR" # Don't change
     disabled_by_default: True
+    accuracy_decimals: 1
     id: target_2_snr
   - platform: template
     name: "Target 3 SNR" # Don't change
     disabled_by_default: True
     id: target_3_snr
+    accuracy_decimals: 1
   - platform: template
     name: "Target 4 SNR" # Don't change
     disabled_by_default: True
     id: target_4_snr
-  - platform: custom
-    lambda: |-
-      auto my_custom = new Sen0395Distance(id(uart_bus));
-      App.register_component(my_custom);
-      return {};
-    sensors: {}
+    accuracy_decimals: 1
       
 binary_sensor:
   - platform: gpio
@@ -210,6 +208,24 @@ binary_sensor:
     name: "Target 4 Active" # Don't change
     disabled_by_default: True
     id: target_4_active
+  - platform: template
+    name: Range 1 Occupied
+    id: r1_occupied
+    device_class: occupancy
+  - platform: template
+    name: Range 2 Occupied
+    id: r2_occupied
+    device_class: occupancy
+  - platform: template
+    name: Range 3 Occupied
+    id: r3_occupied
+    device_class: occupancy
+  - platform: template
+    name: Range 4 Occupied
+    id: r4_occupied
+    device_class: occupancy
+
+
 
 uart:
   id: uart_bus
@@ -232,29 +248,19 @@ switch:
     turn_off_action:
       - uart.write: "sensorStop"
       - delay: 1s
-
   - platform: template
-    name: UART presence output
-    id: uart_presence_output
+    name: Output Target Details
+    id: target_output
+    disabled_by_default: False
     entity_category: config
-    internal: ${uart_presence_output_disabled}
     optimistic: true
-    turn_on_action:
-      - switch.turn_off: mmwave_sensor
-      - delay: 1s
-      - uart.write: "setUartOutput 1 1"
-      - delay: 1s
-      - uart.write: "saveConfig"
-      - delay: 3s
-      - switch.turn_on: mmwave_sensor
-    turn_off_action:
-      - switch.turn_off: mmwave_sensor
-      - delay: 1s
-      - uart.write: "setUartOutput 1 0"
-      - delay: 1s
-      - uart.write: "saveConfig"
-      - delay: 3s
-      - switch.turn_on: mmwave_sensor
+    on_turn_on:
+      - lambda: |-
+          ((Sen0395Distance*)id(my_custom_id))->update_config();
+    on_turn_off:
+      - lambda: |-
+          ((Sen0395Distance*)id(my_custom_id))->update_config();
+
 
 number:
   - platform: template
@@ -569,6 +575,10 @@ button:
             return std::vector<unsigned char>();
           }
       - delay: 1s
+      - uart.write: "setUartOutput 1 0"
+      - delay: 1s
+      - uart.write: "setUartOutput 2 1 0 1600"
+      - delay: 1s
       - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
       - delay: 1s
       - switch.turn_on: mmwave_sensor
@@ -584,3 +594,10 @@ text_sensor:
   - platform: template
     name: "Distance Zones Status"
     id: "distance_zone_status"
+
+custom_component:
+- lambda: |-
+    auto my_custom = new Sen0395Distance(id(uart_bus));
+    return {my_custom};
+  components:
+  - id: my_custom_id
