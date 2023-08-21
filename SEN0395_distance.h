@@ -180,5 +180,22 @@ public:
     id(r2_occupied).publish_state(r_range_occupied[2]);
     id(r3_occupied).publish_state(r_range_occupied[3]);
     id(r4_occupied).publish_state(r_range_occupied[4]);
+
+    float t_snr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    float t_distance[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    bool t_active[10] = {false, false, false, false, false, false, false, false, false, false};
+
+    for (int target = 0; target < sensorlines.size(); target++)
+    {
+      int target_index = std::get<0>(sensorlines[target]);
+      t_active[target_index] = true;
+      t_distance[target_index] = std::get<1>(sensorlines[target]);
+      t_snr[target_index] = std::get<2>(sensorlines[target]);
+    }
+    setTargetValue(1, t_active[1], t_distance[1], t_snr[1]);
+    setTargetValue(2, t_active[2], t_distance[2], t_snr[2]);
+    setTargetValue(3, t_active[3], t_distance[3], t_snr[3]);
+    setTargetValue(4, t_active[4], t_distance[4], t_snr[4]);
+
   }
 };
