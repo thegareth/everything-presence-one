@@ -10,6 +10,8 @@ public:
   bool b_write_target_details = false;
   float f_range_start[5] = {0, 0, 0, 0, 0};
   float f_range_end[5] = {0, 0, 0, 0, 0};
+  typedef std::tuple<int, float, float> pointentry;
+
 
   void update_config()
   {
@@ -105,8 +107,6 @@ public:
   {
     // ESP_LOGD("custom", "Update loop called");
 
-    typedef std::tuple<int, float, float> pointentry;
-
     std::vector<pointentry> sensorlines;
 
     std::string line;
@@ -145,7 +145,6 @@ public:
 
           if (target_index == 1)
           {
-            ESP_LOGD("custom", "we hit a sensor clear point");
             sensorlines.clear();
           }
           sensorlines.push_back(std::make_tuple(target_index, target_distance, target_snr));
