@@ -116,6 +116,9 @@ public:
     static char buffer[max_line_length];
     int line_count = 0;
     while (available())
+
+    // If there is UART sensor data from the MMWave, read it in.
+
     {
       if (available() && readline(read(), buffer, max_line_length) > 0)
       {
@@ -145,22 +148,22 @@ public:
 
           if (target_index == 1)
           {
+            // When the target index is 1, that means we're starting a new set of readings
+            // Re-setting the vector clears out any old readings and returns only one set
             sensorlines.clear();
           }
+          // Pushing the sensor readings into the vector as a tuple, so we can access them later
           sensorlines.push_back(std::make_tuple(target_index, target_distance, target_snr));
         }
       }
     }
 
+    // DEBUG that shows how many lines we are using versus how many we received
     // ESP_LOGD("custom", "Selected %d lines, out of %d received", sensorlines.size(), line_count);
     // if (sensorlines.size() > 0)
-    // {
-    //   ESP_LOGD("custom", "First line: %d, %f, %f - Last: %d, %f, %f", std::get<0>(sensorlines[0]), std::get<1>(sensorlines[0]), std::get<2>(sensorlines[0]),
-    //            std::get<0>(sensorlines.back()), std::get<1>(sensorlines.back()), std::get<2>(sensorlines.back()));
-    // }
 
+    // Now we have the latest set of readings from the sensor, we can iterate over them and figure out which zones are occupied
     bool r_range_occupied[5] = {false, false, false, false, false};
-
     for (int range = 1; range < 4; range++)
     {
       if (this->f_range_start[range] >= 0 && this->f_range_end[range] > 0)
@@ -175,26 +178,33 @@ public:
       }
     }
 
+    // We can then publish those
+    // TODO refactor this to a function that we can loop
+
     id(r1_occupied).publish_state(r_range_occupied[1]);
     id(r2_occupied).publish_state(r_range_occupied[2]);
     id(r3_occupied).publish_state(r_range_occupied[3]);
     id(r4_occupied).publish_state(r_range_occupied[4]);
 
+    // We can also do similar for the target: their active state, distance and SNR
     float t_snr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float t_distance[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     bool t_active[10] = {false, false, false, false, false, false, false, false, false, false};
 
     for (int target = 0; target < sensorlines.size(); target++)
     {
-      int target_index = std::get<0>(sensorlines[target]);
+      pointentry current_target = sensorlines[target];
+      int target_index = std::get<0>(current_target);
       t_active[target_index] = true;
-      t_distance[target_index] = std::get<1>(sensorlines[target]);
-      t_snr[target_index] = std::get<2>(sensorlines[target]);
+      t_distance[target_index] = std::get<1>(current_target);
+      t_snr[target_index] = std::get<2>(current_target);
     }
-    setTargetValue(1, t_active[1], t_distance[1], t_snr[1]);
-    setTargetValue(2, t_active[2], t_distance[2], t_snr[2]);
-    setTargetValue(3, t_active[3], t_distance[3], t_snr[3]);
-    setTargetValue(4, t_active[4], t_distance[4], t_snr[4]);
+
+    // Call update target for each target up to 4
+    for (int target = 1; target < 5; target++)
+    {
+        setTargetValue(target, t_active[target], t_distance[target], t_snr[target]);
+    }
 
   }
 };
