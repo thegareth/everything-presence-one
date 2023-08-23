@@ -1,5 +1,5 @@
 substitutions:
-  name: "everything-presence-beta-7006a8"
+  name: "esphome-web-7006a8"
   friendly_name: "Everything Presence One"
   project_name: "Everything Smart Technology.Everything Presence One"
   project_version: "1.2.3b"
@@ -198,18 +198,26 @@ binary_sensor:
     name: Range 1 Occupied
     id: r1_occupied
     device_class: occupancy
+    filters:
+      - delayed_on: 10s
   - platform: template
     name: Range 2 Occupied
     id: r2_occupied
     device_class: occupancy
+    filters:
+      - delayed_on: 10s
   - platform: template
     name: Range 3 Occupied
     id: r3_occupied
     device_class: occupancy
+    filters:
+      - delayed_on: 10s
   - platform: template
     name: Range 4 Occupied
     id: r4_occupied
     device_class: occupancy
+    filters:
+      - delayed_on: 10s
 
 
 
