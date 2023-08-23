@@ -2,7 +2,7 @@
 #include <string>
 #include <tuple>
 
-class Sen0395Distance : public PollingComponent, public UARTDevice
+class Sen0395Distance : public UARTDevice, public PollingComponent
 {
 public:
   Sen0395Distance(UARTComponent *parent) : UARTDevice(parent), PollingComponent(1500) {}
