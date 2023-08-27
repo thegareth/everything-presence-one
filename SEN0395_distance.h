@@ -13,6 +13,19 @@ public:
   typedef std::tuple<int, float, float> pointentry;
 
 
+  void normalise_ranges(int pivot_range){
+    if(id(mmwave_zone_1_start).state > id(mmwave_zone_1_end).state){
+      id(mmwave_zone_1_start).publish_state(id(mmwave_zone_1_end).state);
+    }
+    if(id(mmwave_zone_2_start).state < id(mmwave_zone_1_end).state){
+      if (pivot_range==2){
+        id(mmwave_zone_1_end).publish_state(id(mmwave_zone_2_start).state);
+      } else {
+        id(mmwave_zone_2_start).publish_state(id(mmwave_zone_1_end).state);
+      }
+    }
+  }
+
   void update_config()
   {
     ESP_LOGD("custom", "Config update called");

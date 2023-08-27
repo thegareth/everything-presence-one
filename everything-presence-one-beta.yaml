@@ -259,7 +259,7 @@ switch:
 number:
   - platform: template
     id: mmwave_zone_1_start
-    name: mmWave Zone 1 Start
+    name: Zone 1 begin
     min_value: 0
     max_value: 800
     step: 15
@@ -270,62 +270,87 @@ number:
     entity_category: config
     disabled_by_default: False
     icon: "mdi:arrow-left-right"
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 1
 
   - platform: template
     id: mmwave_zone_1_end
-    name: mmWave Zone 1 End
+    name: Zone 1 End
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 315
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: False
     icon: "mdi:arrow-left-right"
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 1
 
   - platform: template
     id: mmwave_zone_2_start
-    name: mmWave Zone 2 Start
+    name: Zone 2 begin
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 0
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: True
     icon: "mdi:arrow-left-right"
-    
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 2
+
   - platform: template
     id: mmwave_zone_2_end
-    name: mmWave Zone 2 End
+    name: Zone 2 end
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 0
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: True
     icon: "mdi:arrow-left-right"
-    
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 2
+
   - platform: template
     id: mmwave_zone_3_start
-    name: mmWave Zone 3 Start
+    name: mmWave Zone 3 Begin
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 0
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: True
     icon: "mdi:arrow-left-right"
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 3
 
   - platform: template
     id: mmwave_zone_3_end
@@ -333,41 +358,56 @@ number:
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 0
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: True
     icon: "mdi:arrow-left-right"
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 3
 
   - platform: template
     id: mmwave_zone_4_start
-    name: mmWave Zone 4 Start
+    name: Zone 4 Begin
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 0
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: True
     icon: "mdi:arrow-left-right"
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 4
 
   - platform: template
     id: mmwave_zone_4_end
-    name: mmWave Zone 4 End
+    name: Zone 4 End
     min_value: 0
     max_value: 800
     step: 15
-    initial_value: 0
+    initial_value: 800
     mode: slider
     unit_of_measurement: cm
     optimistic: true
     entity_category: config
     disabled_by_default: True
     icon: "mdi:arrow-left-right"
+    on_value: 
+      then:
+        - script.execute:
+            id: wait_and_update_mmwave
+            updated_item: 4
 
   - platform: template
     name: mmWave off latency
@@ -596,3 +636,15 @@ custom_component:
     return {my_custom};
   components:
   - id: my_custom_id
+
+script:
+  - id: wait_and_update_mmwave
+    mode: restart # Every time another value is changed, the countdown restarts
+    parameters:
+      updated_item: int
+    then:
+    - delay: 1s
+    - lambda: |-
+        ((Sen0395Distance*)id(my_custom_id))->normalise_ranges(updated_item);
+    - delay: 10s # Wait in case any other values are changed
+    - button.press: mmwave_set_distance
